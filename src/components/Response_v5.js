@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import Table from "react-bootstrap/Table";
@@ -8,7 +8,7 @@ import LoadersAll_v2 from "./LoadersAll_v2";
 import PersonalAccount from "./PersonalAccount";
 
 
-function Response_v4() {
+function Response_v5() {
     const[serialNumber, setSerialNumber] = useState('');
     // Loaders
     const[detailsLoaders, setDetailsLoaders] = useState([]);
@@ -34,17 +34,7 @@ function Response_v4() {
 
     let mistakeHTTPinLoaders;
     
-    async function handleSubmit(event) {
-        event.preventDefault();
-
-        const form = event.target;
-        const formData = new FormData(form);
-        const formJson = Object.fromEntries(formData.entries());
-        console.log('formJson in Response: ', formJson);
-
-        // const token = localStorage.getItem('token');
-        console.log('token in handleSubmit Response: ', token);
-
+    async function getDetails() {
         // запрос погрузчиков
         const url = "http://127.0.0.1:8000/api/v1/loaderlist/"
 
@@ -65,16 +55,6 @@ function Response_v4() {
             console.log('resultJson in fetch: ', resultJson);
             setDetailsLoaders(resultJson);
             setLoadersResponseOk(true);
-
-            // поиск сведений о погрузчике с серийным номером serialNumber
-            resultSerNum = resultJson.find(item => item.serialNumber == serialNumber);
-            if (resultSerNum != undefined) {
-              console.log('resultSerNum from handleSubmit Response_v4: ', resultSerNum);
-              setDetailLoader([resultSerNum]);
-            } else {
-              alert(`Отсутствует погрузчик с серийным номером ${serialNumber}`);
-              mistakeHTTPinLoaders = true;
-            }
         } else {
             alert('Ошибка HTTP: ' + response.status);
             mistakeHTTPinLoaders = true;
@@ -97,15 +77,6 @@ function Response_v4() {
             let resultJsonTS = await responseTS.json();
             console.log('resultJsonTS in fetch: ', resultJsonTS);
             setDetailsTSAll(resultJsonTS);
-
-            // поиск сведений о ТО погрузчика с серийным номером serialNumber
-            let resultTSSerNum = resultJsonTS.filter(item => item.loaderOnTechService == serialNumber);
-            if (resultTSSerNum != -1) {
-              console.log('resultTSSerNum from handleSubmit Response_v4: ', resultTSSerNum);
-              setDetailTS(resultTSSerNum);
-            } else {
-              alert(`Отсутствует ТО погрузчика с серийным номером {serialNumber}`);
-            }
         } else {
             alert('Ошибка HTTP: ' + responseTS.status);
         } 
@@ -127,18 +98,49 @@ function Response_v4() {
             let resultJsonCl = await responseCl.json();
             console.log('resultJsonCl in fetch: ', resultJsonCl);
             setDetailsClAll(resultJsonCl);
-
-            // поиск сведений о ТО погрузчика с серийным номером serialNumber
-            let resultClSerNum = resultJsonCl.filter(item => item.loaderOnClaim == serialNumber);
-            if (resultClSerNum != -1) {
-              console.log('resultClSerNum from handleSubmit Response_v4: ', resultClSerNum);
-              setDetailCl(resultClSerNum);
-            } else {
-              alert(`Отсутствует рекламация для погрузчика с серийным номером {serialNumber}`);
-            }
         } else {
             alert('Ошибка HTTP: ' + responseCl.status);
-        } 
+        }
+    }
+
+    async function handleSubmit(event) {
+        event.preventDefault();
+
+        const form = event.target;
+        const formData = new FormData(form);
+        const formJson = Object.fromEntries(formData.entries());
+        console.log('formJson in Response: ', formJson);
+
+        // const token = localStorage.getItem('token');
+        console.log('token in handleSubmit Response: ', token);
+
+        // поиск сведений о погрузчике с серийным номером serialNumber
+        resultSerNum = detailsLoaders.find(item => item.serialNumber == serialNumber);
+        if (resultSerNum != undefined) {
+            console.log('resultSerNum from handleSubmit Response_v4: ', resultSerNum);
+            setDetailLoader([resultSerNum]);
+        } else {
+            alert(`Отсутствует погрузчик с серийным номером ${serialNumber}`);
+            mistakeHTTPinLoaders = true;
+        }       
+
+        // поиск сведений о ТО погрузчика с серийным номером serialNumber
+        let resultTSSerNum = detailsTSAll.filter(item => item.loaderOnTechService == serialNumber);
+        if (resultTSSerNum != -1) {
+            console.log('resultTSSerNum from handleSubmit Response_v4: ', resultTSSerNum);
+            setDetailTS(resultTSSerNum);
+        } else {
+            alert(`Отсутствует ТО погрузчика с серийным номером {serialNumber}`);
+        }
+
+        // поиск сведений о ТО погрузчика с серийным номером serialNumber
+        let resultClSerNum = detailsClAll.filter(item => item.loaderOnClaim == serialNumber);
+        if (resultClSerNum != -1) {
+            console.log('resultClSerNum from handleSubmit Response_v4: ', resultClSerNum);
+            setDetailCl(resultClSerNum);
+        } else {
+            alert(`Отсутствует рекламация для погрузчика с серийным номером {serialNumber}`);
+        }
       
         // сразу строим таблицу "Общая информация"
         // если так не строить, то таблица появится только после нажатия на кнопку
@@ -321,6 +323,10 @@ function Response_v4() {
       setHeader(headerCl);
     }
     
+    useEffect(() => {
+        getDetails();
+    }, []);
+    
     console.log('serialNumber from Response_v4: ', resultSerNum);
     console.log('detailsLoaders: ', detailsLoaders);
 
@@ -378,9 +384,9 @@ function Response_v4() {
                  </tbody>
                 </Table>
             </div>
-            <div className="section-table-content">
+            {/* <div className="section-table-content">
                 { loadersResponseOk && <LoadersAll_v2 detailsloaders={detailsLoaders} /> }
-            </div>
+            </div> */}
             <Link to={{pathname: "personalaccount"}} state={{from: detailsLoaders}} className="header-auth-btn">Личный кабинет</Link>
             <form>
                 <label htmlFor="fruits">Выберите фрукт</label>
@@ -394,4 +400,4 @@ function Response_v4() {
         </React.Fragment>        
     );
 }
-export default Response_v4;
+export default Response_v5;

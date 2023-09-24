@@ -78,6 +78,7 @@ body {
     text-align: center;
     margin-right: 15px;
     cursor: pointer;
+    padding: 3px 15px;
 }
 
 .header-auth-btn:hover {
@@ -324,4 +325,21 @@ th, td {
 .section-main-panel-table-row-link {
     color:black;
     cursor: pointer;
+}
+
+.sorted-table-arrow-up::after {
+    content: '⛅';
+    border: none;
+    background-color: blue; /* Blue */
+}
+
+.table-header-sorting-button {
+    background-color: #EBE6D6;
+    border: none;
+    cursor: pointer;
+}
+
+.table-header-sorting-button:hover {
+    color:white;
+    background-color:blue;
 }
